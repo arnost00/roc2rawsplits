@@ -34,19 +34,21 @@ jobs:
         run: choco install 7zip -y
 
       - name: Create build directory
-        run: cmake -E make_directory build
+        run: cmake -E make_directory r2s_build
 
-      - name: Configure CMake
-        run: |
-          cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+#      - name: Configure CMake
+#        run: cmake -S . -B r2s_build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
-        run: |
-          cmake --build build --config Release
+        run: cmake --build r2s_build
+
+      - name: Install
+        run: cmake --install 'r2s_build'
+        shell: bash
 
       - name: Package build output as 7z
         run: |
-          7z a build-output.7z ./build/*
+          7z a build-output.7z ./r2s_build/*
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
