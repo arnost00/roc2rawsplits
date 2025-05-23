@@ -24,8 +24,7 @@ jobs:
           arch: win64_mingw
 
       - name: Add MinGW to PATH
-        run: |
-          echo "C:\Qt\${{ env.QT_VERSION }}\mingw_64\bin" >> $GITHUB_PATH
+        run: echo "C:\Qt\${{ env.QT_VERSION }}\mingw_64\bin" >> $GITHUB_PATH
 
       - name: Install CMake & Ninja
         uses: lukka/get-cmake@latest
@@ -36,8 +35,8 @@ jobs:
       - name: Create build directory
         run: cmake -E make_directory r2s_build
 
-#      - name: Configure CMake
-#        run: cmake -S . -B r2s_build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+      - name: Configure CMake
+        run: cmake -S . -B r2s_build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
         run: cmake --build r2s_build
