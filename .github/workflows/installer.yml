@@ -1,0 +1,56 @@
+name: Windows Installer
+
+on:
+  push:
+    branches: [ "main", "main-ci-test" ]
+    pull_request: [ "main" ]
+
+jobs:
+  build:
+    name: Qt 6.9 & Windows
+    runs-on: windows-latest
+
+    env:
+      QT_VERSION: 6.9.0
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ env.QT_VERSION }}
+          modules: "qtbase"
+          arch: win64_mingw
+
+      - name: Add MinGW to PATH
+        run: |
+          echo "C:\Qt\${{ env.QT_VERSION }}\mingw_64\bin" >> $GITHUB_PATH
+
+      - name: Install CMake & Ninja
+        uses: lukka/get-cmake@latest
+
+      - name: Install 7-Zip
+        run: choco install 7zip -y
+
+      - name: Create build directory
+        run: cmake -E make_directory build
+
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: |
+          cmake --build build --config Release
+
+      - name: Package build output as 7z
+        run: |
+          7z a build-output.7z ./build/*
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: roc2rawsplits.7z
+          path: build-output.7z
