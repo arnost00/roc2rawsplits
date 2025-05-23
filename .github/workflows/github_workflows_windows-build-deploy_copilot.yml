@@ -1,0 +1,59 @@
+name: Windows Build & Deploy (7z)
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    env:
+      # Set your Qt version here, e.g., 6.5.3 or 5.15.2
+      QT_VERSION: 6.5.3
+      # Set your Qt modules, e.g., qtbase, qttools, etc.
+      QT_MODULES: "qtbase qttools"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ env.QT_VERSION }}
+          modules: ${{ env.QT_MODULES }}
+          arch: win64_mingw
+
+      - name: Add MinGW to PATH
+        run: |
+          echo "C:\Qt\${{ env.QT_VERSION }}\mingw_64\bin" >> $GITHUB_PATH
+
+      - name: Install CMake & Ninja
+        uses: lukka/get-cmake@v3
+
+      - name: Install 7-Zip
+        run: choco install 7zip -y
+
+      - name: Create build directory
+        run: cmake -E make_directory build
+
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: |
+          cmake --build build --config Release
+
+      - name: Package build output as 7z
+        run: |
+          7z a build-output.7z ./build/*
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build-7z
+          path: build-output.7z
