@@ -11,12 +11,13 @@ on:
 
 jobs:
   build:
-    name: Qt 6.8 & Windows
+    name: Qt 6.9 & Windows
     runs-on: windows-2025
 
     env:
-      QT_VERSION: 6.8.3
+      QT_VERSION: 6.9.0
       BUILD_DIR: r2s_build
+      QT_MINGW: mingw1310_64
 
     steps:
       - name: Checkout code
@@ -30,6 +31,9 @@ jobs:
 
       - name: Add MinGW to PATH
         run: |
+          echo R2S_ROOT=${{github.workspace}} >> "$GITHUB_ENV"
+#  echo R2S_PATH= 
+#  Qt\Tools\mingw1310_64\bin
           echo "C:\Qt\${{ env.QT_VERSION }}\mingw_64\bin" >> $GITHUB_PATH
 
       - name: Show compiler and Qt tools in PATH (debug)
@@ -38,7 +42,7 @@ jobs:
           where qmake
           where mingw32-make
           where cmake
-          echo $PATH
+          echo ${{PATH}}
 
       - name: Install CMake & Ninja
         uses: lukka/get-cmake@latest
