@@ -15,10 +15,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@latest
+        uses: actions/checkout@v4
 
       - name: Install Qt
-        uses: jurplel/install-qt-action@latest
+        uses: jurplel/install-qt-action@v4
         with:
           version: ${{ env.QT_VERSION }}
           arch: win64_mingw
@@ -49,7 +49,7 @@ jobs:
           7z a build-output.7z ./build/*
 
       - name: Upload artifact
-        uses: actions/upload-artifact@latest
+        uses: actions/upload-artifact@v4
         with:
           name: roc2rawsplits.7z
           path: build-output.7z
