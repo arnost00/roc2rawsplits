@@ -36,7 +36,9 @@ jobs:
         run: cmake -E make_directory r2s_build
 
       - name: Configure CMake
-        run: cmake -S . -B r2s_build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+        run: |
+          cmake -S . -B 'r2s_build' -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DMINGW=ON \
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
       - name: Build
         run: cmake --build r2s_build
