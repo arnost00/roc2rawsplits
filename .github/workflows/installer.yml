@@ -33,6 +33,7 @@ jobs:
         run: |
           echo R2S_ROOT=${{github.workspace}} >> "$GITHUB_ENV"
           echo "C:\Qt\${{ env.QT_VERSION }}\mingw_64\bin" >> $GITHUB_PATH
+        shell: bash
 
           # echo R2S_PATH= 
           # Qt\Tools\mingw1310_64\bin
@@ -43,7 +44,7 @@ jobs:
           where qmake
           where mingw32-make
           where cmake
-          echo ${{PATH}}
+          echo $env:PATH
 
       - name: Install CMake & Ninja
         uses: lukka/get-cmake@latest
