@@ -30,7 +30,7 @@ jobs:
           arch: win64_mingw
 
       - name: List Qt directory
-          run: Get-ChildItem -Recurse C:\Qt
+        run: Get-ChildItem -Recurse C:\Qt
 
       - name: Add MinGW to PATH
         run: |
