@@ -43,9 +43,9 @@ jobs:
           where cmake
           echo $PATH
 
-      - name: Clean build directory
-        run: |
-          if exist ${{ env.BUILD_DIR }} rmdir /s /q ${{ env.BUILD_DIR }}
+#      - name: Clean build directory
+#        run: |
+#          if exist ${{ env.BUILD_DIR }} rmdir /s /q ${{ env.BUILD_DIR }}
 
       - name: Install CMake & Ninja
         uses: lukka/get-cmake@latest
