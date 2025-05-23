@@ -29,18 +29,12 @@ jobs:
           version: ${{ env.QT_VERSION }}
           arch: win64_mingw
 
+      - name: List Qt directory
+          run: Get-ChildItem -Recurse C:\Qt
+
       - name: Add MinGW to PATH
         run: |
-          echo ${{github.workspace}} >> "$R2S_ROOT"
-          set R2S_ROOT3=${{github.workspace}}
-          echo '${{github.workspace}}/../Qt/Tools/${{ env.QT_MINGW }}\\bin' >> "$GITHUB_PATH"
-          echo "Xenv2 :"
-          echo "1" $R2S_ROOT
-          echo "3" $R2S_ROOT3
-          echo "Xenv3 :"
-          echo $PATH
-          # echo R2S_PATH= 
-          # Qt\Tools\mingw1310_64\bin
+          echo "C:\Qt\6.9.0\mingw_64\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
 
       - name: Show compiler and Qt tools in PATH (debug)
         run: |
