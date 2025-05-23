@@ -31,13 +31,16 @@ jobs:
 
       - name: Add MinGW to PATH
         run: |
-          echo R2S_ROOT=${{github.workspace}} >> "$GITHUB_ENV"
-          echo '${{github.workspace}}/Qt/Tools/${{ env.QT_MINGW }}\\bin' >> "$GITHUB_PATH"
+          echo ${{github.workspace}} >> "$R2S_ROOT"
+          R2S_ROOT2=${{github.workspace}}
+          set R2S_ROOT3=${{github.workspace}}
+          echo '${{github.workspace}}/../Qt/Tools/${{ env.QT_MINGW }}\\bin' >> "$GITHUB_PATH"
           echo "Xenv2 :"
-          echo $R2S_ROOT
+          echo "1" $R2S_ROOT
+          echo "2" $R2S_ROOT2
+          echo "3" $R2S_ROOT3
           echo "Xenv3 :"
           echo $PATH
-        shell: bash 
           # echo R2S_PATH= 
           # Qt\Tools\mingw1310_64\bin
 
