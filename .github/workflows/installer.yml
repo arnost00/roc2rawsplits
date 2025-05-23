@@ -12,6 +12,8 @@ jobs:
 
     env:
       QT_VERSION: 6.9.0
+      # mingw for QT (6.9 = mingw1310_64, 6.8 = mingw1120_64
+      QT_MINGW: mingw1310_64
 
     steps:
       - name: Checkout code
@@ -24,7 +26,9 @@ jobs:
           arch: win64_mingw
 
       - name: Add MinGW to PATH
-        run: echo "C:\Qt\${{ env.QT_VERSION }}\mingw_64\bin" >> $GITHUB_PATH
+        run: |
+          echo "C:\Qt\${{ env.QT_VERSION }}\mingw_64\bin" >> $GITHUB_PATH
+          echo "C:\Qt\Tools\${{ env.QT_MINGW }}\bin" >> $GITHUB_PATH
 
       - name: Install CMake & Ninja
         uses: lukka/get-cmake@latest
@@ -40,7 +44,7 @@ jobs:
           cmake -S . -B 'r2s_build' -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DMINGW=ON
 
       - name: Build
-        run: cmake --build r2s_build
+        run: cmake --build r2s_build --config Release
 
       - name: Install
         run: cmake --install 'r2s_build'
