@@ -33,6 +33,7 @@ jobs:
         run: |
           echo R2S_ROOT=${{github.workspace}} >> "$GITHUB_ENV"
           echo "C:\Qt\${{ env.QT_VERSION }}\mingw_64\bin" >> $GITHUB_PATH
+          echo $env
         shell: bash
 
           # echo R2S_PATH= 
@@ -40,9 +41,13 @@ jobs:
 
       - name: Show compiler and Qt tools in PATH (debug)
         run: |
+          echo "G++ :"
           where g++
+          echo "qmake :"
           where qmake
+          echo "mingw32-make :"
           where mingw32-make
+          echo "cmake :"
           where cmake
           echo $env:PATH
 
