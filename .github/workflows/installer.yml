@@ -8,20 +8,19 @@ on:
 jobs:
   build:
     name: Qt 6.9 & Windows
-    runs-on: windows-latest
+    runs-on: windows-2025
 
     env:
       QT_VERSION: 6.9.0
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@latest
 
       - name: Install Qt
-        uses: jurplel/install-qt-action@v4
+        uses: jurplel/install-qt-action@latest
         with:
           version: ${{ env.QT_VERSION }}
-          modules: "qtbase"
           arch: win64_mingw
 
       - name: Add MinGW to PATH
@@ -50,7 +49,7 @@ jobs:
           7z a build-output.7z ./build/*
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@latest
         with:
           name: roc2rawsplits.7z
           path: build-output.7z
