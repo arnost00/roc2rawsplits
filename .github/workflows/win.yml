@@ -21,9 +21,7 @@ jobs:
           arch: x64
       
       - name: Install CMake
-        uses: cmake-actions/cmake-action@v1
-        with:
-          cmake-version: '3.28.x'
+        uses: ssrobins/install-cmake@main
       
       - name: Install Qt 6.10.3
         uses: jurplel/install-qt-action@v4
