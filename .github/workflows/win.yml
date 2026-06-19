@@ -19,12 +19,9 @@ jobs:
         uses: egor-tensin/setup-mingw@v3
         with:
           platform: x64
-          version: latest
       
       - name: Install CMake
-        uses: ssrobins/install-cmake@main
-        with:
-         VERSION: '4.0.x'
+        uses: ssrobins/install-cmake@v1
       
       - name: Install Qt 6.10.3
         uses: jurplel/install-qt-action@v4
