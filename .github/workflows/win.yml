@@ -1,0 +1,101 @@
+name: Build Windows
+
+on:
+  push:
+    branches: [ main, mian-ci-test2 ]
+  pull_request:
+    branches: [ main, mian-ci-test2 ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        
+      - name: Set up Visual Studio
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      
+      - name: Install CMake
+        uses: cmake-actions/cmake-action@v1
+        with:
+          cmake-version: '3.28.x'
+      
+      - name: Install Qt 6.10.3
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.10.3'
+          target: 'desktop'
+          arch: 'win64_msvc2022_64'
+          install-deps: 'true'
+          cache: 'true'
+      
+      - name: Create build directory
+        run: mkdir -p build
+      
+      - name: Configure CMake
+        run: |
+          cd build
+          cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+      
+      - name: Build application
+        run: |
+          cd build
+          cmake --build . --config Release --parallel $env:NUMBER_OF_PROCESSORS
+      
+      - name: Collect dependencies
+        run: |
+          $buildDir = "build\Release"
+          $depsDir = "deps"
+          New-Item -ItemType Directory -Force -Path $depsDir
+          
+          # Copy main executable
+          Copy-Item "$buildDir\roc2rawsplits.exe" -Destination $depsDir
+          
+          # Get Qt DLLs using windeployqt
+          $qtPath = "${{ env.Qt6_DIR }}"
+          $windeployqt = "$qtPath\..\..\..\bin\windeployqt.exe"
+          
+          if (Test-Path $windeployqt) {
+            & $windeployqt --release "$depsDir\roc2rawsplits.exe"
+          } else {
+            Write-Host "Warning: windeployqt not found at expected location"
+            # Fallback: manually copy common Qt DLLs
+            $qtBin = "$qtPath\bin"
+            if (Test-Path $qtBin) {
+              Get-ChildItem "$qtBin\Qt6*.dll" | Copy-Item -Destination $depsDir
+              Get-ChildItem "$qtBin\libcrypto*.dll" -ErrorAction SilentlyContinue | Copy-Item -Destination $depsDir
+              Get-ChildItem "$qtBin\libssl*.dll" -ErrorAction SilentlyContinue | Copy-Item -Destination $depsDir
+            }
+          }
+          
+          # Copy MSVC runtime libraries
+          Copy-Item "C:\Windows\System32\msvcp140.dll" -Destination $depsDir -ErrorAction SilentlyContinue
+          Copy-Item "C:\Windows\System32\vcruntime140.dll" -Destination $depsDir -ErrorAction SilentlyContinue
+          Copy-Item "C:\Windows\System32\vccorlib140.dll" -Destination $depsDir -ErrorAction SilentlyContinue
+      
+      - name: Create 7z archive
+        run: |
+          cd deps
+          7z a -r ..\roc2rawsplits-windows-release.7z *
+          cd ..
+          dir roc2rawsplits-windows-release.7z
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: roc2rawsplits-windows-release
+          path: roc2rawsplits-windows-release.7z
+          retention-days: 30
+      
+      - name: Create Release (on main branch push with tag)
+        if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: roc2rawsplits-windows-release.7z
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
