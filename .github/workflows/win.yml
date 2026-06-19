@@ -15,85 +15,93 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
         
-      - name: Set up Visual Studio
-        uses: ilammy/msvc-dev-cmd@v1
+      - name: Install MinGW
+        uses: egor-tensin/setup-mingw@v3
         with:
-          arch: x64
+          platform: x64
+          version: latest
       
       - name: Install CMake
         uses: ssrobins/install-cmake@main
+        with:
+         VERSION: '4.0.x'
       
       - name: Install Qt 6.10.3
         uses: jurplel/install-qt-action@v4
         with:
           version: '6.10.3'
           target: 'desktop'
-          arch: 'win64_msvc2022_64'
+          arch: 'win64_mingw_64'
           install-deps: 'true'
           cache: 'true'
       
       - name: Create build directory
         run: mkdir -p build
-      
-      - name: Configure CMake
+        shell: bash
+          
+      - name: Configure CMake with MinGW
         run: |
           cd build
-          cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+          cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=20
       
       - name: Build application
         run: |
           cd build
-          cmake --build . --config Release --parallel $env:NUMBER_OF_PROCESSORS
+          cmake --build . --config Release --parallel
       
       - name: Collect dependencies
+        shell: bash
         run: |
-          $buildDir = "build\Release"
-          $depsDir = "deps"
-          New-Item -ItemType Directory -Force -Path $depsDir
+          buildDir="build/Release"
+          depsDir="deps"
+          mkdir -p $depsDir
           
           # Copy main executable
-          Copy-Item "$buildDir\roc2rawsplits.exe" -Destination $depsDir
+          if [ -f "build/roc2rawsplits.exe" ]; then
+            cp build/roc2rawsplits.exe $depsDir/
+          else
+            cp build/Release/roc2rawsplits.exe $depsDir/
+          fi
           
           # Get Qt DLLs using windeployqt
-          $qtPath = "${{ env.Qt6_DIR }}"
-          $windeployqt = "$qtPath\..\..\..\bin\windeployqt.exe"
+          qtPath="${{ env.Qt6_DIR }}"
+          windeployqt="$qtPath/../../../bin/windeployqt.exe"
           
-          if (Test-Path $windeployqt) {
-            & $windeployqt --release "$depsDir\roc2rawsplits.exe"
-          } else {
-            Write-Host "Warning: windeployqt not found at expected location"
-            # Fallback: manually copy common Qt DLLs
-            $qtBin = "$qtPath\bin"
-            if (Test-Path $qtBin) {
-              Get-ChildItem "$qtBin\Qt6*.dll" | Copy-Item -Destination $depsDir
-              Get-ChildItem "$qtBin\libcrypto*.dll" -ErrorAction SilentlyContinue | Copy-Item -Destination $depsDir
-              Get-ChildItem "$qtBin\libssl*.dll" -ErrorAction SilentlyContinue | Copy-Item -Destination $depsDir
-            }
-          }
+          if [ -f "$windeployqt" ]; then
+            "$windeployqt" --release "$depsDir/roc2rawsplits.exe"
+          else
+            echo "Warning: windeployqt not found at expected location"
+            # Fallback: manually copy Qt DLLs
+            qtBin="$qtPath/bin"
+            if [ -d "$qtBin" ]; then
+              find "$qtBin" -name "Qt6*.dll" -exec cp {} $depsDir \;
+              find "$qtBin" -name "libcrypto*.dll" -exec cp {} $depsDir \; 2>/dev/null || true
+              find "$qtBin" -name "libssl*.dll" -exec cp {} $depsDir \; 2>/dev/null || true
+            fi
+          fi
           
-          # Copy MSVC runtime libraries
-          Copy-Item "C:\Windows\System32\msvcp140.dll" -Destination $depsDir -ErrorAction SilentlyContinue
-          Copy-Item "C:\Windows\System32\vcruntime140.dll" -Destination $depsDir -ErrorAction SilentlyContinue
-          Copy-Item "C:\Windows\System32\vccorlib140.dll" -Destination $depsDir -ErrorAction SilentlyContinue
+          # Copy MinGW runtime libraries
+          mingwPath=$(which g++ | xargs dirname)
+          echo "MinGW bin path: $mingwPath"
+          
+          # Copy essential MinGW DLLs
+          if [ -d "$mingwPath" ]; then
+            cp "$mingwPath/libgcc_s_seh-1.dll" $depsDir/ 2>/dev/null || true
+            cp "$mingwPath/libstdc++-6.dll" $depsDir/ 2>/dev/null || true
+            cp "$mingwPath/libwinpthread-1.dll" $depsDir/ 2>/dev/null || true
+          fi
       
       - name: Create 7z archive
+        shell: bash
         run: |
           cd deps
-          7z a -r ..\roc2rawsplits-windows-release.7z *
+          7z a -r ../roc2rawsplits-windows-mingw-release.7z *
           cd ..
-          dir roc2rawsplits-windows-release.7z
+          ls -lh roc2rawsplits-windows-mingw-release.7z
       
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: roc2rawsplits-windows-release
-          path: roc2rawsplits-windows-release.7z
-          retention-days: 30
-      
-      - name: Create Release (on main branch push with tag)
-        if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: roc2rawsplits-windows-release.7z
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: roc2rawsplits-windows-mingw-release
+          path: roc2rawsplits-windows-mingw-release.7z
+
