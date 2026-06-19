@@ -23,12 +23,12 @@ jobs:
       - name: Install CMake
         uses: ssrobins/install-cmake@v1
       
-      - name: Install Qt 6.10.3
+      - name: Install Qt6
         uses: jurplel/install-qt-action@v4
         with:
           version: '6.10.3'
           target: 'desktop'
-          arch: 'win64_mingw_64'
+          arch: 'win64_mingw'
           install-deps: 'true'
           cache: 'true'
       
